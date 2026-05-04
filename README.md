@@ -1,4 +1,4 @@
-# weather-truth
+# StandardizeWeather
 
 A daily pipeline that ingests "current conditions" weather data from multiple
 sources (NOAA, OpenWeather, WeatherAPI, a local PWS feed over FTP), normalizes
@@ -7,7 +7,10 @@ breaks in a daily report.
 
 The shape of the project mirrors a portfolio-data ingest pipeline: many sources
 claim to know the same fact; we ingest all their claims, store one canonical
-version, and explain disagreements.
+version, and explain disagreements. Weather is the vehicle here — part of my
+goal in building this was to get hands-on with the practical side of data
+standardization: identity resolution, unit conversion, and the edge cases that
+only show up once you try to make several feeds agree.
 
 ## Status
 
@@ -24,7 +27,8 @@ pytest
 ## Layout
 
 ```
-src/weather_truth/
+src/weather_truth/   # package name kept short for imports
+
   schema.py    # canonical Observation model — every feed is mapped into this
   db.py        # SQLite connection + migrations + insert/fetch helpers
 tests/
