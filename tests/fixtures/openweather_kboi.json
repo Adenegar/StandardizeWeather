@@ -1,0 +1,30 @@
+{
+  "coord": {"lon": -116.2023, "lat": 43.6135},
+  "weather": [
+    {"id": 800, "main": "Clear", "description": "clear sky", "icon": "01d"}
+  ],
+  "base": "stations",
+  "main": {
+    "temp": 15.4,
+    "feels_like": 14.8,
+    "temp_min": 13.0,
+    "temp_max": 17.0,
+    "pressure": 1012,
+    "humidity": 45
+  },
+  "visibility": 10000,
+  "wind": {"speed": 3.6, "deg": 270},
+  "clouds": {"all": 0},
+  "dt": 1777908180,
+  "sys": {
+    "type": 2,
+    "id": 2008327,
+    "country": "US",
+    "sunrise": 1777887600,
+    "sunset": 1777938000
+  },
+  "timezone": -25200,
+  "id": 5586437,
+  "name": "Boise",
+  "cod": 200
+}

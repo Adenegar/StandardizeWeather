@@ -7,3 +7,6 @@ venv/
 *.db
 *.sqlite
 .DS_Store
+.env
+.env.*
+!.env.example
