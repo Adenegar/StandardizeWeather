@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import httpx
+
+_SECRET_PARAM_RE = re.compile(r"(appid|api_?key|token)=([^&\s]+)", re.IGNORECASE)
+
+
+def _redact(url: str) -> str:
+    return _SECRET_PARAM_RE.sub(r"\1=REDACTED", url)
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -45,8 +52,13 @@ class HttpClient:
     def get_json(self, url: str) -> dict[str, Any]:
         resp = self._client.get(url)
         if 500 <= resp.status_code < 600:
-            raise RetryableStatus(f"{resp.status_code} from {url}")
-        resp.raise_for_status()
+            raise RetryableStatus(f"{resp.status_code} from {_redact(url)}")
+        if not resp.is_success:
+            raise httpx.HTTPStatusError(
+                f"{resp.status_code} from {_redact(url)}",
+                request=resp.request,
+                response=resp,
+            )
         return resp.json()
 
     def close(self) -> None:
