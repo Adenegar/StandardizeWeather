@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from weather_truth.feeds.http import HttpClient
+from standardize_weather.feeds.http import HttpClient
 
 
 def test_retries_on_5xx_then_succeeds():

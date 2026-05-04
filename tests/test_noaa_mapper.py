@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from weather_truth.normalize.noaa import map_noaa_observation
+from standardize_weather.normalize.noaa import map_noaa_observation
 
 FIXTURE = Path(__file__).parent / "fixtures" / "noaa_kboi.json"
 INGESTED_AT = datetime(2026, 5, 4, 15, 1, tzinfo=timezone.utc)

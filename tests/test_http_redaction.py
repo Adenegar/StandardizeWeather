@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from weather_truth.feeds.http import HttpClient, _redact
+from standardize_weather.feeds.http import HttpClient, _redact
 
 
 def test_redact_appid():

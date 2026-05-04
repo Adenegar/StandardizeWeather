@@ -1,4 +1,4 @@
-from weather_truth.units import pa_to_hpa
+from standardize_weather.units import pa_to_hpa
 
 
 def test_pa_to_hpa():

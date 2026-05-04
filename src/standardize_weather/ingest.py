@@ -120,7 +120,7 @@ def seed_aliases_from_file(conn: sqlite3.Connection, path: Path) -> int:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="weather_truth.ingest")
+    parser = argparse.ArgumentParser(prog="standardize_weather.ingest")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_noaa = sub.add_parser("noaa", help="Ingest a NOAA station observation")

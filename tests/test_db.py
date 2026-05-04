@@ -3,14 +3,14 @@ from datetime import datetime, timezone
 
 import pytest
 
-from weather_truth.db import (
+from standardize_weather.db import (
     connect,
     fetch_observation,
     init_schema,
     insert_observation,
     store_raw_payload,
 )
-from weather_truth.schema import Observation
+from standardize_weather.schema import Observation
 
 
 def _conn(tmp_path):

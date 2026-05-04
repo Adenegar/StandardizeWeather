@@ -1,7 +1,7 @@
 import pytest
 
-from weather_truth.db import connect, init_schema
-from weather_truth.stations import UnknownStation, resolve_station_id, set_alias
+from standardize_weather.db import connect, init_schema
+from standardize_weather.stations import UnknownStation, resolve_station_id, set_alias
 
 
 def _conn(tmp_path):

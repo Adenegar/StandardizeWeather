@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from weather_truth.normalize.openweather import map_openweather_observation
+from standardize_weather.normalize.openweather import map_openweather_observation
 
 FIXTURE = Path(__file__).parent / "fixtures" / "openweather_kboi.json"
 INGESTED_AT = datetime(2026, 5, 4, 15, 24, tzinfo=timezone.utc)

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic import ValidationError
 
-from weather_truth.schema import Observation
+from standardize_weather.schema import Observation
 
 
 def _obs(**kw):

@@ -3,11 +3,11 @@ from pathlib import Path
 
 import httpx
 
-from weather_truth.db import connect, init_schema
-from weather_truth.feeds.http import HttpClient
-from weather_truth.feeds.noaa import NoaaClient
-from weather_truth.ingest import ingest_noaa
-from weather_truth.stations import resolve_station_id
+from standardize_weather.db import connect, init_schema
+from standardize_weather.feeds.http import HttpClient
+from standardize_weather.feeds.noaa import NoaaClient
+from standardize_weather.ingest import ingest_noaa
+from standardize_weather.stations import resolve_station_id
 
 FIXTURE = Path(__file__).parent / "fixtures" / "noaa_kboi.json"
 

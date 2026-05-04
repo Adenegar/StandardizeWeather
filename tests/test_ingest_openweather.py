@@ -4,11 +4,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from weather_truth.db import connect, init_schema
-from weather_truth.feeds.http import HttpClient
-from weather_truth.feeds.openweather import OpenWeatherAuthError, OpenWeatherClient
-from weather_truth.ingest import ingest_openweather, seed_aliases_from_file
-from weather_truth.stations import UnknownStation, set_alias
+from standardize_weather.db import connect, init_schema
+from standardize_weather.feeds.http import HttpClient
+from standardize_weather.feeds.openweather import OpenWeatherAuthError, OpenWeatherClient
+from standardize_weather.ingest import ingest_openweather, seed_aliases_from_file
+from standardize_weather.stations import UnknownStation, set_alias
 
 FIXTURE = Path(__file__).parent / "fixtures" / "openweather_kboi.json"
 SEEDS = Path(__file__).parent.parent / "seeds" / "aliases.json"
