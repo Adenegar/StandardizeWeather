@@ -19,11 +19,13 @@ only show up once you try to make several feeds agree.
 - OpenWeather ingest, end-to-end, with a JSON-seeded station-alias table that
   resolves each source's identifier to a single canonical station id.
 - Retry-with-backoff HTTP client; secrets in URLs are redacted from error output.
-- Test suite covering mappers, HTTP retries, and end-to-end ingest with mocked
-  transports — no live network calls during tests.
+- Reconciliation report comparing each source's latest observation per station,
+  flagging breaks where any field falls outside a configurable tolerance.
+- Test suite covering mappers, HTTP retries, end-to-end ingest, and the
+  reconciliation engine — no live network calls during tests.
 
-Still to come: a third messy source over FTP, a validation-rule layer, the
-reconciliation engine that compares sources, scheduling, and a daily report.
+Still to come: a third messy source over FTP, an explicit validation-rule layer,
+scheduling, and a daily report file.
 
 ## Setup
 
@@ -46,7 +48,27 @@ python -m standardize_weather.ingest openweather --station 5586437 --db wt.db
 
 sqlite3 -header -column wt.db \
   "SELECT source, station_id, observed_at, temp_c, pressure_hpa FROM observations;"
+
+# Reconcile each source's latest observation per station and flag breaks
+python -m standardize_weather.reconcile --db wt.db
 ```
+
+Sample output (real run, NOAA + OpenWeather both reporting Boise):
+
+```
+=== KBOI === (2 sources)
+  noaa          temp= 18.00  hum= 42.31  pres= 1008.81    observed 2026-05-04T16:30:00+00:00
+  openweather   temp= 18.60  hum= 48.00  pres= 1007.00    observed 2026-05-04T16:45:01+00:00
+  median        temp= 18.30  hum= 45.16  pres= 1007.90
+
+  noaa          Δtemp=-0.30  Δhum=-2.84  Δpres=+0.90   OK
+  openweather   Δtemp=+0.30  Δhum=+2.84  Δpres=-0.90   OK
+
+  no breaks.
+```
+
+A `BREAK` marker appears next to any source whose value falls outside the per-field
+tolerance (defaults: ±1.5°C, ±10 humidity points, ±3 hPa).
 
 ## Layout
 
@@ -64,6 +86,7 @@ src/standardize_weather/
     noaa.py            # NOAA payload → Observation
     openweather.py     # OpenWeather payload → Observation
   ingest.py            # CLI: noaa | openweather | seed-aliases
+  reconcile.py         # CLI + engine: latest-per-source diff with break flags
 seeds/
   aliases.json         # checked-in station-alias seed data
 tests/
