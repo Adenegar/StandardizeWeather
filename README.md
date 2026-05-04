@@ -1,5 +1,7 @@
 # StandardizeWeather
 
+[![test](https://github.com/Adenegar/StandardizeWeather/actions/workflows/test.yml/badge.svg)](https://github.com/Adenegar/StandardizeWeather/actions/workflows/test.yml)
+
 A daily pipeline that ingests "current conditions" weather data from multiple
 sources (NOAA, OpenWeather, WeatherAPI, a local PWS feed over FTP), normalizes
 them to one canonical schema, validates, and reconciles disagreements — surfacing
@@ -10,7 +12,8 @@ claim to know the same fact; we ingest all their claims, store one canonical
 version, and explain disagreements. Weather is the vehicle here — part of my
 goal in building this was to get hands-on with the practical side of data
 standardization: identity resolution, unit conversion, and the edge cases that
-only show up once you try to make several feeds agree.
+only show up once you try to make several feeds agree. A secondary goal was
+practicing GitHub Actions for CI, hence the workflow under `.github/workflows/`.
 
 ## What works today
 
