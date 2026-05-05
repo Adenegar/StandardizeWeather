@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import argparse
 import json
 import sqlite3
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .db import connect, init_schema, insert_observation, store_raw_payload
+from .db import insert_observation, store_raw_payload
 from .feeds.noaa import NoaaClient
 from .feeds.openweather import OpenWeatherClient
 from .normalize.noaa import map_noaa_observation
@@ -119,57 +117,3 @@ def seed_aliases_from_file(conn: sqlite3.Connection, path: Path) -> int:
     return len(entries)
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="standardize_weather.ingest")
-    sub = parser.add_subparsers(dest="cmd", required=True)
-
-    p_noaa = sub.add_parser("noaa", help="Ingest a NOAA station observation")
-    p_noaa.add_argument("--station", required=True, help="NOAA station ID, e.g. KBOI")
-    p_noaa.add_argument("--db", default="wt.db")
-
-    p_ow = sub.add_parser(
-        "openweather", help="Ingest an OpenWeather city observation"
-    )
-    p_ow.add_argument(
-        "--station",
-        required=True,
-        help="OpenWeather city id, e.g. 5586437 for Boise",
-    )
-    p_ow.add_argument("--db", default="wt.db")
-
-    p_seed = sub.add_parser(
-        "seed-aliases", help="Load station aliases from a JSON file"
-    )
-    p_seed.add_argument("--file", required=True)
-    p_seed.add_argument("--db", default="wt.db")
-
-    return parser
-
-
-def main(argv: list[str] | None = None) -> int:
-    # Auto-load .env so OPENWEATHER_API_KEY etc. are available without exporting.
-    try:
-        from dotenv import load_dotenv
-
-        load_dotenv()
-    except ImportError:
-        pass
-
-    args = _build_parser().parse_args(argv)
-    conn = connect(Path(args.db))
-    init_schema(conn)
-
-    if args.cmd == "noaa":
-        row_id = ingest_noaa(conn, args.station)
-        print(f"inserted observation id={row_id}")
-    elif args.cmd == "openweather":
-        row_id = ingest_openweather(conn, args.station)
-        print(f"inserted observation id={row_id}")
-    elif args.cmd == "seed-aliases":
-        n = seed_aliases_from_file(conn, Path(args.file))
-        print(f"seeded {n} aliases")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

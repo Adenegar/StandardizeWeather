@@ -25,6 +25,17 @@ def set_alias(
     conn.commit()
 
 
+def list_source_station_ids(conn: sqlite3.Connection, source: str) -> list[str]:
+    rows = conn.execute(
+        """
+        SELECT source_station_id FROM station_aliases
+        WHERE source = ? ORDER BY source_station_id
+        """,
+        (source,),
+    ).fetchall()
+    return [r["source_station_id"] for r in rows]
+
+
 def resolve_station_id(
     conn: sqlite3.Connection, source: str, source_station_id: str
 ) -> str:

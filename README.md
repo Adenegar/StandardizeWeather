@@ -2,78 +2,76 @@
 
 [![test](https://github.com/Adenegar/StandardizeWeather/actions/workflows/test.yml/badge.svg)](https://github.com/Adenegar/StandardizeWeather/actions/workflows/test.yml)
 
-A daily pipeline that ingests "current conditions" weather data from multiple
-sources (NOAA, OpenWeather, WeatherAPI, a local PWS feed over FTP), normalizes
-them to one canonical schema, validates, and reconciles disagreements — surfacing
-breaks in a daily report.
-
-The shape of the project mirrors a portfolio-data ingest pipeline: many sources
-claim to know the same fact; we ingest all their claims, store one canonical
-version, and explain disagreements. Weather is the vehicle here — part of my
-goal in building this was to get hands-on with the practical side of data
-standardization: identity resolution, unit conversion, and the edge cases that
-only show up once you try to make several feeds agree. A secondary goal was
-practicing GitHub Actions for CI, hence the workflow under `.github/workflows/`.
-
-## What works today
-
-- Canonical `Observation` schema and SQLite storage with idempotent inserts.
-- NOAA `api.weather.gov` ingest, end-to-end (live).
-- OpenWeather ingest, end-to-end, with a JSON-seeded station-alias table that
-  resolves each source's identifier to a single canonical station id.
-- Retry-with-backoff HTTP client; secrets in URLs are redacted from error output.
-- Reconciliation report comparing each source's latest observation per station,
-  flagging breaks where any field falls outside a configurable tolerance.
-- Test suite covering mappers, HTTP retries, end-to-end ingest, and the
-  reconciliation engine — no live network calls during tests.
-
-Still to come: a third messy source over FTP, an explicit validation-rule layer,
-scheduling, and a daily report file.
-
-## Setup
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e '.[dev]'
-cp .env.example .env   # then add your OPENWEATHER_API_KEY
-pytest
-```
-
-## Usage
-
-```bash
-# Seed station aliases (maps OpenWeather city ids to canonical station ids)
-python -m standardize_weather.ingest seed-aliases --file seeds/aliases.json --db wt.db
-
-# Pull a single observation from each source
-python -m standardize_weather.ingest noaa --station KBOI --db wt.db
-python -m standardize_weather.ingest openweather --station 5586437 --db wt.db
-
-sqlite3 -header -column wt.db \
-  "SELECT source, station_id, observed_at, temp_c, pressure_hpa FROM observations;"
-
-# Reconcile each source's latest observation per station and flag breaks
-python -m standardize_weather.reconcile --db wt.db
-```
-
-Sample output (real run, NOAA + OpenWeather both reporting Boise):
+Pulls "current conditions" from multiple weather feeds, normalizes them to one
+canonical schema, and prints a side-by-side reconciliation showing where the
+sources disagree.
 
 ```
+$ sw demo
+seeded 2 aliases from seeds/aliases.json
+
+noaa         KBOI       ingested
+openweather  5586437    ingested
+
 === KBOI === (2 sources)
-  noaa          temp= 18.00  hum= 42.31  pres= 1008.81    observed 2026-05-04T16:30:00+00:00
-  openweather   temp= 18.60  hum= 48.00  pres= 1007.00    observed 2026-05-04T16:45:01+00:00
-  median        temp= 18.30  hum= 45.16  pres= 1007.90
+  noaa          temp= 21.00  hum= 30.52  pres= 1010.84    observed 2026-05-05T18:35:00+00:00
+  openweather   temp= 21.32  hum= 35.00  pres= 1008.00    observed 2026-05-05T18:55:22+00:00
+  median        temp= 21.16  hum= 32.76  pres= 1009.42
 
-  noaa          Δtemp=-0.30  Δhum=-2.84  Δpres=+0.90   OK
-  openweather   Δtemp=+0.30  Δhum=+2.84  Δpres=-0.90   OK
+  noaa          Δtemp=-0.16  Δhum=-2.24  Δpres=+1.42   OK
+  openweather   Δtemp=+0.16  Δhum=+2.24  Δpres=-1.42   OK
 
   no breaks.
 ```
 
-A `BREAK` marker appears next to any source whose value falls outside the per-field
+`BREAK` appears next to any source whose value falls outside the per-field
 tolerance (defaults: ±1.5°C, ±10 humidity points, ±3 hPa).
 
-## Layout
+## Quickstart
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e '.[dev]'
+sw demo                              # NOAA only — works immediately, no auth
+```
+
+To unlock the second source:
+
+```bash
+cp .env.example .env                 # then paste your OpenWeather API key
+sw demo                              # now ingests both sources and reconciles
+```
+
+Get a free OpenWeather API key at <https://openweathermap.org/api>. New keys
+take a few minutes to a couple of hours to activate.
+
+## Other commands
+
+```bash
+sw ingest noaa                       # ingest every seeded NOAA station
+sw ingest openweather                # ingest every seeded OpenWeather station
+sw ingest noaa KSFO                  # one-off: ingest a specific station
+sw reconcile                         # report all stations
+sw reconcile --station KBOI          # report one station
+sw seed-aliases --file seeds/aliases.json
+```
+
+The seed file (`seeds/aliases.json`) is the source of truth for which stations
+this project tracks. Add a new station by appending an entry there.
+
+## Why this exists
+
+This is a portfolio project for a data-integration role. The shape mirrors a
+portfolio-data ingest pipeline — many sources claim to know the same fact, we
+ingest all their claims, store one canonical version, and explain
+disagreements. Two practice goals shaped the work:
+
+1. The practical side of data standardization: identity resolution, unit
+   conversion, and the edge cases that only surface when several feeds need to
+   agree.
+2. GitHub Actions for CI, hence the workflow under `.github/workflows/`.
+
+## Internals
 
 ```
 src/standardize_weather/
@@ -88,14 +86,15 @@ src/standardize_weather/
   normalize/
     noaa.py            # NOAA payload → Observation
     openweather.py     # OpenWeather payload → Observation
-  ingest.py            # CLI: noaa | openweather | seed-aliases
-  reconcile.py         # CLI + engine: latest-per-source diff with break flags
+  ingest.py            # orchestration: fetch → store raw → map → insert
+  reconcile.py         # latest-per-source diff with break flags
+  cli.py               # `sw` entrypoint
 seeds/
   aliases.json         # checked-in station-alias seed data
 tests/
 ```
 
-## Tables
+### Tables
 
 - `observations` — canonical normalized rows. `UNIQUE(source, source_record_id)`
   makes re-ingest idempotent.
@@ -103,3 +102,8 @@ tests/
   any disagreement can be traced back to what the source actually sent.
 - `station_aliases` — maps each source's station identifier to our canonical
   `station_id`. Identity resolution across sources is its own problem.
+
+### Still to come
+
+A third messy source over FTP, an explicit validation-rule layer, scheduling,
+and a daily report file.

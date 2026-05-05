@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-import argparse
 import sqlite3
-import sys
 from dataclasses import dataclass, field
-from pathlib import Path
 from statistics import median
-
-from .db import connect, init_schema
 
 # Generous defaults — meant to catch unit errors and stale feeds, not to
 # bicker about a couple tenths of a degree.
@@ -168,28 +163,3 @@ def format_station_report(report: StationReport) -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="standardize_weather.reconcile")
-    parser.add_argument("--station", default=None, help="Limit to one station")
-    parser.add_argument("--db", default="wt.db")
-    args = parser.parse_args(argv)
-
-    conn = connect(Path(args.db))
-    init_schema(conn)
-
-    grouped = latest_per_source(conn, station_id=args.station)
-    if not grouped:
-        suffix = f" for station {args.station}" if args.station else ""
-        print(f"no observations in {args.db}{suffix}")
-        return 0
-
-    reports = [
-        format_station_report(reconcile_station(station_id, sources))
-        for station_id, sources in grouped.items()
-    ]
-    print("\n\n".join(reports))
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

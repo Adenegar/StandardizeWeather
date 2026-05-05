@@ -1,3 +1,4 @@
 [
+  {"source": "noaa",        "source_station_id": "KBOI",    "canonical_station_id": "KBOI"},
   {"source": "openweather", "source_station_id": "5586437", "canonical_station_id": "KBOI"}
 ]
