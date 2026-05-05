@@ -86,7 +86,7 @@ def cmd_reconcile(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_demo(args: argparse.Namespace) -> int:
+def cmd_run(args: argparse.Namespace) -> int:
     seed_path = Path(args.seeds)
     if not seed_path.exists():
         print(f"seed file not found: {seed_path}", file=sys.stderr)
@@ -134,11 +134,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    p_demo = sub.add_parser(
-        "demo", help="One-shot: seed, ingest every seeded source, then reconcile."
+    p_run = sub.add_parser(
+        "run",
+        help="Seed aliases, ingest every seeded source, and reconcile.",
     )
-    p_demo.add_argument("--seeds", default=DEFAULT_SEEDS)
-    p_demo.add_argument("--db", default=DEFAULT_DB)
+    p_run.add_argument("--seeds", default=DEFAULT_SEEDS)
+    p_run.add_argument("--db", default=DEFAULT_DB)
 
     p_ing = sub.add_parser("ingest", help="Pull observations from one source.")
     p_ing.add_argument("source", choices=["noaa", "openweather"])
@@ -164,7 +165,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 HANDLERS = {
-    "demo": cmd_demo,
+    "run": cmd_run,
     "ingest": cmd_ingest,
     "reconcile": cmd_reconcile,
     "seed-aliases": cmd_seed_aliases,

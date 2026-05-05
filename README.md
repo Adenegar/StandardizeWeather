@@ -7,7 +7,7 @@ canonical schema, and prints a side-by-side reconciliation showing where the
 sources disagree.
 
 ```
-$ sw demo
+$ sw run
 seeded 2 aliases from seeds/aliases.json
 
 noaa         KBOI       ingested
@@ -32,14 +32,14 @@ tolerance (defaults: ±1.5°C, ±10 humidity points, ±3 hPa).
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e '.[dev]'
-sw demo                              # NOAA only — works immediately, no auth
+sw run                              # NOAA only — works immediately, no auth
 ```
 
 To unlock the second source:
 
 ```bash
 cp .env.example .env                 # then paste your OpenWeather API key
-sw demo                              # now ingests both sources and reconciles
+sw run                              # now ingests both sources and reconciles
 ```
 
 Get a free OpenWeather API key at <https://openweathermap.org/api>. New keys
